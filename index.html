@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mampani: Engineering a Collective Future for Our Planet</title>
+    <meta name="description" content="A static clone of the Mampani website focused on climate action and environmental stewardship.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+<style>
+  :root {
+    --color-bg: #FFFFFF; /* Pure white for clean base */
+    --color-bg-alt: #F9F9F7; /* Subtle warm off-white */
+    --color-surface: #FFFFFF; /* Cards remain white */
+    --color-text: #1A1A1A; /* Rich charcoal black */
+    --color-text-secondary: #555555; /* Refined, readable gray */
+    --color-primary: #B89E5A; /* Muted, elegant gold */
+    --color-primary-hover: #A18A4C; /* Darker gold for hover */
+    --color-border: #EAEAEA; /* Soft, light gray */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--color-text-secondary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .font-sans {
+     font-family: 'Manrope', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', sans-serif;
+    color: var(--color-text);
+    font-weight: 800;
+  }
+  
+  .prose {
+    color: var(--color-text-secondary);
+  }
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: var(--color-text);
+  }
+
+  /* --- Accessibility & Focus States --- */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Don't show outline on elements that have their own focus styles */
+  input:focus-visible, textarea:focus-visible {
+    outline: none;
+  }
+
+  input[type="range"].custom-slider::-webkit-slider-thumb { background-color: var(--color-primary); }
+  input[type="range"].custom-slider::-moz-range-thumb { background-color: var(--color-primary); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* --- Hero Title Animations --- */
+  @keyframes slideInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideOutUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-50px); } }
+  .animate-slide-in-up { animation: slideInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+  .animate-slide-out-up { animation: slideOutUp 0.6s cubic-bezier(0.5, 0, 0.75, 0) both; }
+
+  @keyframes fadeInSimple { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fadeOutSimple { from { opacity: 1; } to { opacity: 0; } }
+  .animate-fade-in-simple { animation: fadeInSimple 0.6s ease-in-out both; }
+  .animate-fade-out-simple { animation: fadeOutSimple 0.6s ease-in-out both; }
+
+  @keyframes slideInFromRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideOutToLeft { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-50px); } }
+  .animate-slide-in-right { animation: slideInFromRight 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+  .animate-slide-out-left { animation: slideOutToLeft 0.6s cubic-bezier(0.5, 0, 0.75, 0) both; }
+
+  @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes zoomOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.8); } }
+  .animate-zoom-in { animation: zoomIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+  .animate-zoom-out { animation: zoomOut 0.6s cubic-bezier(0.5, 0, 0.75, 0) both; }
+
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-scroll { animation: scroll 40s linear infinite; }
+  .modal-overlay { transition: opacity 0.3s ease-in-out; }
+  .modal-content { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+  
+  @keyframes pop-in {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes slide-up-fade-in {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .chat-fab { animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s both; }
+  .chat-window { animation: slide-up-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .chat-message-bubble { animation: slide-up-fade-in 0.5s ease-out both; }
+  @keyframes typing-dot {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+  }
+  .typing-dot { animation: typing-dot 1.2s infinite ease-in-out; }
+  .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes wave-hand {
+    0%, 100% { transform: rotate(0deg); }
+    20%, 60% { transform: rotate(-25deg); }
+    40%, 80% { transform: rotate(10deg); }
+  }
+  @keyframes bob-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+  }
+  .robot-arm { transform-origin: 75% 66%; }
+  .waving .robot-arm { animation: wave-hand 2s ease-in-out; }
+  .robot-body { animation: bob-float 4s ease-in-out infinite; }
+
+  .chat-messages-container::-webkit-scrollbar { width: 6px; }
+  .chat-messages-container::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages-container::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+  .chat-messages-container::-webkit-scrollbar-thumb:hover { background: #b0b0b5; }
+
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* --- Card Flip Animation --- */
+  .flip-card {
+    perspective: 1000px;
+  }
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+  .flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+    border-radius: 1rem; /* Corresponds to rounded-2xl */
+  }
+  .flip-card-back {
+    transform: rotateY(180deg);
+  }
+  
+  /* --- Fireworks Animation --- */
+  @keyframes burst {
+    0% { transform: scale(0.5) rotate(0deg); opacity: 1; }
+    100% { transform: scale(4.5) rotate(360deg); opacity: 0; }
+  }
+
+  .fireworks-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+    animation: burst 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+
+  /* --- Toast Animations --- */
+  @keyframes toast-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  .animate-toast-in {
+    animation: toast-in 0.5s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+  }
+  
+  @keyframes toast-out {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  .animate-toast-out {
+    animation: toast-out 0.5s ease-in both;
+  }
+  
+  /* --- Accessibility: Reduced Motion --- */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scroll {
+      animation-play-state: paused;
+    }
+  }
+
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.1.7",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0",
+    "@firebase/auth": "https://aistudiocdn.com/@firebase/auth@^1.11.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
