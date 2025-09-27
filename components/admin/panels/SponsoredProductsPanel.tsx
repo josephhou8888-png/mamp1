@@ -1,6 +1,6 @@
 import React from 'react';
 import { Fieldset, TextInput } from '../AdminFormComponents';
-import { SponsorApplication } from '../../../types/firestore';
+import { SponsorApplication } from '../../../types/data';
 
 interface SponsoredProductsPanelProps {
     data: any;

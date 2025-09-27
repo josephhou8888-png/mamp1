@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ModalWrapper from './ModalWrapper';
 import { SpinnerIcon } from '../IconComponents';
 import { useAuth } from '../../contexts/AuthContext';
-import { AppUser } from '../../types/firestore';
+import { AppUser } from '../../types/data';
 
 
 interface AuthModalProps {
@@ -85,7 +85,6 @@ setName('');
         if (e) e.preventDefault();
         setLoading(true);
         setError('');
-        // FIX: Removed `password` from `sponsorData` to match the `AppUser` type. The password will be passed as a separate argument.
         const sponsorData: Partial<AppUser> = { email, companyName, companyWebsite, contactPerson, contactRole, phone, companyDescription };
         const result = await handleSponsorSignUp(sponsorData, password);
 
@@ -105,78 +104,78 @@ setName('');
         <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-lg">
             <div className="p-8">
                 <div className="flex border-b border-[var(--color-border)] mb-6">
-                    <button onClick={() => setActiveTab('login')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'login' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content.login}</button>
-                    <button onClick={() => setActiveTab('signup')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'signup' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content.signUp}</button>
-                    <button onClick={() => setActiveTab('sponsor')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'sponsor' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content.sponsor}</button>
+                    <button onClick={() => setActiveTab('login')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'login' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content?.login || 'Login'}</button>
+                    <button onClick={() => setActiveTab('signup')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'signup' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content?.signUp || 'Sign Up'}</button>
+                    <button onClick={() => setActiveTab('sponsor')} className={`px-4 py-2 text-lg font-sans font-semibold transition-colors ${activeTab === 'sponsor' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>{content?.sponsor || 'Sponsor'}</button>
                 </div>
 
                 {/* Login Tab */}
                 <div className={activeTab === 'login' ? 'block' : 'hidden'}>
-                     <h2 className="text-3xl font-sans font-bold text-center mb-6">{content.welcomeBack}</h2>
+                     <h2 className="text-3xl font-sans font-bold text-center mb-6">{content?.welcomeBack || 'Welcome Back!'}</h2>
                      <form onSubmit={handleLoginAction} className="space-y-4">
                         <div>
-                            <label className="font-semibold">{content.email}</label>
+                            <label className="font-semibold">{content?.email || 'Email Address'}</label>
                             <input ref={emailInputRefLogin} type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputStyles} />
                         </div>
                         <div>
-                            <label className="font-semibold">{content.password}</label>
+                            <label className="font-semibold">{content?.password || 'Password'}</label>
                             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className={inputStyles} />
                         </div>
                         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         <button type="submit" disabled={loading} className="w-full mt-4 text-lg font-semibold px-8 py-3 rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:bg-[var(--color-primary-hover)] transition-colors duration-300 disabled:opacity-50 flex items-center justify-center">
-                            {loading && <SpinnerIcon />} {content.login}
+                            {loading && <SpinnerIcon />} {content?.login || 'Login'}
                         </button>
                      </form>
                 </div>
                 
                 {/* User Signup Tab */}
                 <div className={activeTab === 'signup' ? 'block' : 'hidden'}>
-                     <h2 className="text-3xl font-sans font-bold text-center mb-6">{content.createAccount}</h2>
+                     <h2 className="text-3xl font-sans font-bold text-center mb-6">{content?.createAccount || 'Create an Account'}</h2>
                      <form onSubmit={handleSignUpAction} className="space-y-4">
                         <div>
-                            <label className="font-semibold">{content.fullName}</label>
+                            <label className="font-semibold">{content?.fullName || 'Full Name'}</label>
                             <input type="text" value={name} onChange={e => setName(e.target.value)} required className={inputStyles} />
                         </div>
                         <div>
-                            <label className="font-semibold">{content.email}</label>
+                            <label className="font-semibold">{content?.email || 'Email Address'}</label>
                             <input ref={emailInputRefSignup} type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputStyles} />
                         </div>
                         <div>
-                            <label className="font-semibold">{content.password}</label>
+                            <label className="font-semibold">{content?.password || 'Password'}</label>
                             <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className={inputStyles} />
                         </div>
                         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         <button type="submit" disabled={loading} className="w-full mt-4 text-lg font-semibold px-8 py-3 rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:bg-[var(--color-primary-hover)] transition-colors duration-300 disabled:opacity-50 flex items-center justify-center">
-                            {loading && <SpinnerIcon />} {content.createAccountBtn}
+                            {loading && <SpinnerIcon />} {content?.createAccountBtn || 'Create Account'}
                         </button>
                     </form>
                 </div>
 
                 {/* Sponsor Signup Tab */}
                 <div className={activeTab === 'sponsor' ? 'block' : 'hidden'}>
-                    <h2 className="text-3xl font-sans font-bold text-center mb-6">{content.sponsorSignUpTitle}</h2>
+                    <h2 className="text-3xl font-sans font-bold text-center mb-6">{content?.sponsorSignUpTitle || 'Become a Sponsor'}</h2>
                     <form onSubmit={handleSponsorAction} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label className="font-semibold">{content.companyName}</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} required className={inputStyles} /></div>
-                            <div><label className="font-semibold">{content.companyWebsite}</label><input type="url" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} required className={inputStyles} /></div>
-                            <div><label className="font-semibold">{content.contactPerson}</label><input type="text" value={contactPerson} onChange={e => setContactPerson(e.target.value)} required className={inputStyles} /></div>
-                            <div><label className="font-semibold">{content.contactRole}</label><input type="text" value={contactRole} onChange={e => setContactRole(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.companyName || 'Company Name'}</label><input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.companyWebsite || 'Company Website'}</label><input type="url" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.contactPerson || 'Contact Person'}</label><input type="text" value={contactPerson} onChange={e => setContactPerson(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.contactRole || 'Role'}</label><input type="text" value={contactRole} onChange={e => setContactRole(e.target.value)} required className={inputStyles} /></div>
                         </div>
                         <div>
-                            <label className="font-semibold">{content.email}</label>
+                            <label className="font-semibold">{content?.email || 'Email Address'}</label>
                             <input ref={emailInputRefSponsor} type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputStyles} />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label className="font-semibold">{content.password}</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required className={inputStyles} /></div>
-                            <div><label className="font-semibold">{content.phone}</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.password || 'Password'}</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required className={inputStyles} /></div>
+                            <div><label className="font-semibold">{content?.phone || 'Phone'}</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required className={inputStyles} /></div>
                         </div>
                         <div>
-                            <label className="font-semibold">{content.companyDescription}</label>
+                            <label className="font-semibold">{content?.companyDescription || 'Company Description'}</label>
                             <textarea value={companyDescription} onChange={e => setCompanyDescription(e.target.value)} required rows={3} className={inputStyles}></textarea>
                         </div>
                         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         <button type="submit" disabled={loading} className="w-full mt-4 text-lg font-semibold px-8 py-3 rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:bg-[var(--color-primary-hover)] transition-colors duration-300 disabled:opacity-50 flex items-center justify-center">
-                            {loading && <SpinnerIcon />} {content.createAccountBtn}
+                            {loading && <SpinnerIcon />} {content?.createAccountBtn || 'Create Account'}
                         </button>
                     </form>
                 </div>

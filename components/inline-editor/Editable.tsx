@@ -6,6 +6,26 @@ declare global {
   }
 }
 
+/**
+ * Recursively traverses React children to extract a plain text string representation.
+ * This is used to correctly display initial values in the editor for complex children.
+ * @param children The React.ReactNode to extra text from.
+ * @returns A plain text string.
+ */
+const getChildrenAsText = (children: React.ReactNode): string => {
+    return React.Children.toArray(children).map(child => {
+        if (typeof child === 'string' || typeof child === 'number') {
+            return child;
+        }
+        // FIX: Cast `child.props` to `any` to safely access `children`. The TypeScript compiler
+        // infers `child.props` as `unknown` here, causing a type error.
+        if (React.isValidElement(child) && (child.props as any).children) {
+            return getChildrenAsText((child.props as any).children);
+        }
+        return '';
+    }).join('');
+};
+
 interface EditableProps {
     path: string;
     onUpdate: (path: string, value: any) => void;
@@ -30,10 +50,9 @@ const Editable: React.FC<EditableProps> = ({ path, onUpdate, children, isEditing
         if (type === 'image' && props?.src) {
             return props.src;
         }
-        const value = props?.children;
-        if (typeof value === 'string') return value;
-        if (Array.isArray(value)) return value.join(''); // Handle cases with multiple children
-        return '';
+        // FIX: Recursively extract text content to avoid "[object Object]" errors
+        // when children contain nested React components.
+        return getChildrenAsText(props.children);
     };
 
     useEffect(() => {

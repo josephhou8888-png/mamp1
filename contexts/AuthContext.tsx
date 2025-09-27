@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useToast } from './ToastContext';
 import { useContent } from './ContentContext';
-import { AppUser, Product, Reward, GamePrize, AllContent } from '../types/firestore';
-import { mockAdmin, mockSponsor, mockUser, DEMO_PASS } from '../services/mockData';
+import { AppUser, Product, Reward, GamePrize, AllContent } from '../types/data';
+import { supabase } from '../services/supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
     currentUser: AppUser | null;
@@ -10,7 +11,6 @@ interface AuthContextType {
     handleLogout: () => void;
     handleLogin: (email: string, pass: string) => Promise<'user' | 'sponsor' | 'admin' | 'error'>;
     handleSignUp: (name: string, email: string, pass: string) => Promise<'user' | 'error'>;
-    // FIX: Added `pass` parameter to align with component usage and fix typing error, maintaining consistency with handleSignUp.
     handleSponsorSignUp: (sponsorData: Partial<AppUser>, pass: string) => Promise<'sponsor' | 'error'>;
     handleAddToCart: (product: Product) => void;
     handleRemoveFromCart: (index: number) => void;
@@ -29,6 +29,15 @@ export const useAuth = () => {
     return context;
 };
 
+const initialUserData = {
+    impact: { co2Offset: 0, treesPlanted: 0 },
+    goals: { co2Offset: 10, treesPlanted: 100 },
+    supportedProjects: [],
+    cart: [],
+    points: 0,
+    winnings: [],
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
@@ -36,76 +45,119 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { allContent, setAllContent, language } = useContent();
 
     useEffect(() => {
-        // With Firebase removed, authentication state is not persistent.
-        // We start with no user logged in and immediately finish loading.
-        setLoadingAuth(false);
+        setLoadingAuth(true);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+                    console.error('Error fetching profile:', error);
+                }
+                
+                if (profile) {
+                    setCurrentUser({ ...session.user, ...profile });
+                } else {
+                    // This can happen if profile creation fails after signup.
+                    // We set a minimal user object.
+                    setCurrentUser({
+                        id: session.user.id,
+                        email: session.user.email || null,
+                        role: 'user'
+                    });
+                }
+            } else {
+                setCurrentUser(null);
+            }
+            setLoadingAuth(false);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
     
     const handleLogin = useCallback(async (email: string, pass: string): Promise<'user' | 'sponsor' | 'admin' | 'error'> => {
-        if (pass !== DEMO_PASS) return 'error';
-
-        if (email.toLowerCase() === mockUser.email) {
-            setCurrentUser(mockUser);
-            return 'user';
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if (error || !data.user) {
+            console.error('Login error:', error);
+            return 'error';
         }
-        if (email.toLowerCase() === mockSponsor.email) {
-            setCurrentUser(mockSponsor);
-            return 'sponsor';
-        }
-        if (email.toLowerCase() === mockAdmin.email) {
-            setCurrentUser(mockAdmin);
-            return 'admin';
-        }
-        return 'error';
+        // onAuthStateChange will handle setting the user, but we can return role for immediate UI logic
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        return profile?.role || 'user';
     }, []);
 
     const handleSignUp = useCallback(async (name: string, email: string, pass: string): Promise<'user' | 'error'> => {
-        const newUser: AppUser = {
-            uid: `user_${Date.now()}`,
-            email: email,
-            name: name,
+        const { data, error } = await supabase.auth.signUp({ email, password: pass });
+        if (error || !data.user) {
+             console.error('Signup error:', error);
+             return 'error';
+        }
+        const { error: profileError } = await supabase.from('profiles').insert({
+            id: data.user.id,
+            email,
+            name,
             role: 'user',
-            impact: { co2Offset: 0, treesPlanted: 0 },
-            goals: { co2Offset: 10, treesPlanted: 100 },
-            supportedProjects: [],
-            cart: [],
-            points: 0,
-            winnings: [],
-        };
-        setCurrentUser(newUser);
+            ...initialUserData
+        });
+        if (profileError) {
+            console.error('Profile creation error:', profileError);
+            return 'error';
+        }
         return 'user';
     }, []);
     
     const handleSponsorSignUp = useCallback(async (sponsorData: Partial<AppUser>, pass: string): Promise<'sponsor' | 'error'> => {
-        const newSponsor: AppUser = {
-            uid: `sponsor_${Date.now()}`,
-            email: sponsorData.email!,
+        const email = sponsorData.email!;
+        const { data, error } = await supabase.auth.signUp({ email, password: pass });
+        if (error || !data.user) {
+             console.error('Sponsor signup error:', error);
+             return 'error';
+        }
+        const { error: profileError } = await supabase.from('profiles').insert({
+            id: data.user.id,
             role: 'sponsor',
-            name: sponsorData.contactPerson,
             ...sponsorData
-        };
-        setCurrentUser(newSponsor);
+        });
+        if (profileError) {
+            console.error('Sponsor profile creation error:', profileError);
+            return 'error';
+        }
         return 'sponsor';
     }, []);
 
-    const handleLogout = useCallback(() => {
+    const handleLogout = useCallback(async () => {
+        await supabase.auth.signOut();
         setCurrentUser(null);
     }, []);
+
+    const updateUserProfile = async (updates: Partial<AppUser>) => {
+        if (!currentUser) return;
+        const { error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id);
+        if (error) {
+            console.error("Error updating profile:", error);
+            showToast('Failed to save changes.', 'error');
+        } else {
+            setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+        }
+    };
 
     const handleAddToCart = useCallback((product: Product) => {
         if (!currentUser) return;
         const newCart = [...(currentUser.cart || []), product];
-        setCurrentUser(prev => prev ? ({ ...prev, cart: newCart }) : null);
+        updateUserProfile({ cart: newCart });
         showToast(`${product.name} added to cart!`, 'success');
     }, [currentUser, showToast]);
 
     const handleRemoveFromCart = useCallback((indexToRemove: number) => {
         if (!currentUser || !currentUser.cart) return;
         const newCart = currentUser.cart.filter((_, index) => index !== indexToRemove);
-        setCurrentUser(prev => prev ? ({ ...prev, cart: newCart }) : null);
+        updateUserProfile({ cart: newCart });
     }, [currentUser]);
 
-    const handleTngPaymentSuccess = useCallback(() => {
+    const handleTngPaymentSuccess = useCallback(async () => {
         if (!currentUser || !currentUser.cart || currentUser.cart.length === 0) return;
 
         const pointsEarned = currentUser.cart.reduce((sum, item) => sum + (item.points || 0), 0);
@@ -116,15 +168,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             supportedProjects: newSupportedProjects,
             cart: []
         };
-
-        setCurrentUser(prevUser => prevUser ? ({ ...prevUser, ...updatedUserData }) : null);
+        await updateUserProfile(updatedUserData);
         showToast('Thank you for your purchase!', 'success');
     }, [currentUser, showToast]);
     
-    const handleRedeemReward = useCallback((reward: Reward) => {
+    const handleRedeemReward = useCallback(async (reward: Reward) => {
         if (!currentUser || (currentUser.points || 0) < reward.cost) return;
         const newPoints = (currentUser.points || 0) - reward.cost;
-        setCurrentUser(prev => prev ? ({ ...prev, points: newPoints }) : null);
+        await updateUserProfile({ points: newPoints });
         showToast(`Redeemed: ${reward.title}`, 'success');
     }, [currentUser, showToast]);
 
@@ -140,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const availablePrizes = content.gamePrizes.filter((prize: GamePrize) => prize.inventory > 0 && !recentlyWonPrizeIds.includes(prize.id));
     
         if (availablePrizes.length === 0) {
-            setCurrentUser(prev => prev ? { ...prev, points: (prev.points || 0) - 1 } : null);
+            updateUserProfile({ points: (currentUser.points || 0) - 1 });
             return 'cooldown_or_empty';
         }
     
@@ -157,12 +208,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { ...prev, [language]: newLangContent };
         });
         
-        const updatedUserData = {
+        updateUserProfile({
             points: (currentUser.points || 0) - 1,
             winnings: [...(currentUser.winnings || []), { prizeId: prizeWon.id, timestamp: Date.now() }],
-        };
+        });
 
-        setCurrentUser(prev => prev ? ({ ...prev, ...updatedUserData }) : null);
         return prizeWon;
     }, [currentUser, allContent, language, setAllContent]);
 

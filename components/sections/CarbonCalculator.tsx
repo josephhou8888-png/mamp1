@@ -76,7 +76,7 @@ const CarbonCalculator = memo(({ content, onSignUpRedirect, geminiPrompt, result
         const { electricity, miles, shortFlights, longFlights } = inputs;
         const country = 'USA';
 
-        const prompt = geminiPrompt
+        const prompt = (geminiPrompt || '')
             .replace('{{electricity}}', String(electricity))
             .replace('{{miles}}', String(miles))
             .replace('{{shortFlights}}', String(shortFlights))
@@ -111,7 +111,7 @@ const CarbonCalculator = memo(({ content, onSignUpRedirect, geminiPrompt, result
             setIsResultModalOpen(true);
         } catch (e) {
             console.error(e);
-            setError(e instanceof Error ? e.message : content.error);
+            setError(e instanceof Error ? e.message : content?.error || 'An error occurred.');
         } finally {
             setIsLoading(false);
         }
@@ -133,10 +133,10 @@ const CarbonCalculator = memo(({ content, onSignUpRedirect, geminiPrompt, result
                 </Editable>
                 
                 <div className="mt-20 max-w-4xl mx-auto grid md:grid-cols-2 gap-8 text-left">
-                    <SliderInputCard icon={icons.home} title={content.energyTitle} value={inputs.electricity} unit={content.energyUnit} min="0" max="500" step="10" name="electricity" onChange={handleSliderChange} />
-                    <SliderInputCard icon={icons.car} title={content.drivingTitle} value={inputs.miles} unit={content.drivingUnit} min="0" max="500" step="10" name="miles" onChange={handleSliderChange} />
-                    <SliderInputCard icon={icons.plane} title={content.shortFlightsTitle} value={inputs.shortFlights} unit={content.flightsUnit} min="0" max="20" step="1" name="shortFlights" onChange={handleSliderChange} />
-                    <SliderInputCard icon={icons.plane} title={content.longFlightsTitle} value={inputs.longFlights} unit={content.flightsUnit} min="0" max="10" step="1" name="longFlights" onChange={handleSliderChange} />
+                    <SliderInputCard icon={icons.home} title={content?.energyTitle || 'Home Energy'} value={inputs.electricity} unit={content?.energyUnit || 'kWh/month'} min="0" max="500" step="10" name="electricity" onChange={handleSliderChange} />
+                    <SliderInputCard icon={icons.car} title={content?.drivingTitle || 'Weekly Driving'} value={inputs.miles} unit={content?.drivingUnit || 'miles'} min="0" max="500" step="10" name="miles" onChange={handleSliderChange} />
+                    <SliderInputCard icon={icons.plane} title={content?.shortFlightsTitle || 'Short Flights'} value={inputs.shortFlights} unit={content?.flightsUnit || 'yearly'} min="0" max="20" step="1" name="shortFlights" onChange={handleSliderChange} />
+                    <SliderInputCard icon={icons.plane} title={content?.longFlightsTitle || 'Long Flights'} value={inputs.longFlights} unit={content?.flightsUnit || 'yearly'} min="0" max="10" step="1" name="longFlights" onChange={handleSliderChange} />
                 </div>
                 
                 <div className="mt-16">
@@ -144,17 +144,17 @@ const CarbonCalculator = memo(({ content, onSignUpRedirect, geminiPrompt, result
                         {isLoading ? (
                             <>
                                 <SpinnerIcon className="w-5 h-5 mr-3" />
-                                <span>{content.calculating}</span>
+                                <span>{content?.calculating || 'Calculating...'}</span>
                             </>
                         ) : (
-                            content.button
+                            content?.button || 'Calculate Footprint'
                         )}
                     </button>
                 </div>
 
                 {error && <p className="mt-6 text-red-500">{error}</p>}
                 
-                <ResultsModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} result={result} onSignUpClick={handleSignUpClick} content={resultsModalContent} errorText={content.error}/>
+                <ResultsModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} result={result} onSignUpClick={handleSignUpClick} content={resultsModalContent} errorText={content?.error || 'Could not calculate results.'}/>
             </div>
         </section>
     );

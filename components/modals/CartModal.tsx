@@ -26,13 +26,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, onCheckout, cont
                 onClick={e => e.stopPropagation()}
             >
                 <header className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
-                    <h2 className="text-2xl font-sans font-bold text-[var(--color-text)]">{content.title}</h2>
+                    <h2 className="text-2xl font-sans font-bold text-[var(--color-text)]">{content?.title || 'Your Cart'}</h2>
                     <button onClick={onClose} aria-label="Close cart"><CloseIcon /></button>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-6">
                     {cartItems.length === 0 ? (
-                        <p className="text-center text-slate-500 py-12">{content.empty}</p>
+                        <p className="text-center text-slate-500 py-12">{content?.empty || 'Your cart is empty.'}</p>
                     ) : (
                         <ul className="space-y-4">
                             {cartItems.map((item, index) => (
@@ -53,18 +53,18 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, onCheckout, cont
                 {cartItems.length > 0 && (
                     <footer className="p-6 border-t border-[var(--color-border)] space-y-4">
                         <div className="flex justify-between font-semibold text-lg">
-                            <span>{content.subtotal}</span>
+                            <span>{content?.subtotal || 'Subtotal'}</span>
                             <span>${subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm text-green-600 font-medium">
-                            <span>{content.pointsEarned}</span>
-                            <span>+{pointsEarned} {content.points}</span>
+                            <span>{content?.pointsEarned || 'Points Earned'}</span>
+                            <span>+{pointsEarned} {content?.points || 'Points'}</span>
                         </div>
                         <button 
                             onClick={onCheckout}
                             className="w-full text-lg font-semibold px-8 py-3 rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:bg-[var(--color-primary-hover)] transition-colors duration-300"
                         >
-                            {content.checkout}
+                            {content?.checkout || 'Proceed to Checkout'}
                         </button>
                     </footer>
                 )}

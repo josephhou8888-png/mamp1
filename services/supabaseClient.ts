@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-// For Vite projects, environment variables exposed to the client
-// must be prefixed with VITE_ and are accessed via import.meta.env
-// FIX: Add type assertion to handle missing Vite client types for `import.meta.env`.
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
-// FIX: Add type assertion to handle missing Vite client types for `import.meta.env`.
-const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
+// Since the execution environment does not seem to support `import.meta.env` or `process.env`
+// for client-side environment variables, the Supabase credentials are provided directly here
+// as a workaround to fix the critical connection error. The anonymous key is safe to be public.
+const supabaseUrl = "https://kyzmcjecfucuvopzyayx.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5em1jamVjZnVjdXZvcHp5YXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5NzcwOTYsImV4cCI6MjA3NDU1MzA5Nn0.VG3hpUkjZb2ZMP4ySgWqNG2DUkQYWHGTFpKks_nzWy4";
 
+// This check remains as a safeguard, though it's unlikely to fail with hardcoded values.
 if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL (VITE_SUPABASE_URL) and Anon Key (VITE_SUPABASE_ANON_KEY) must be provided in your .env file.");
+    throw new Error('CRITICAL ERROR: Supabase credentials are not defined. The application cannot connect to the database.');
 }
 
-// Create a single, reusable Supabase client instance
+// Create and export the Supabase client instance.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

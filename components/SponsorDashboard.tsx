@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useContent } from '../contexts/ContentContext';
-import { SponsorApplication } from '../types/firestore';
+import { SponsorApplication } from '../types/data';
 
 const FormInput = ({ label, type, value, onChange, placeholder, required = true }) => (
     <div>
@@ -27,13 +27,12 @@ const SponsorDashboard = ({ content }) => {
     const [quantity, setQuantity] = useState(1);
     
     const user = currentUser!;
-    const sponsorApplications = applications.filter(app => app.sponsorId === user.email);
+    const sponsorApplications = applications.filter(app => app.sponsorId === user.id);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const newApplication: Omit<SponsorApplication, 'id'> = {
-            sponsorId: user.email!,
-            sponsorCompany: user.companyName!,
+        const newApplication: Omit<SponsorApplication, 'id' | 'sponsorCompany'> = {
+            sponsorId: user.id!,
             productName,
             productImage,
             quantity: Number(quantity),
@@ -47,34 +46,34 @@ const SponsorDashboard = ({ content }) => {
 
     const getStatusChip = (status) => {
         switch (status) {
-            case 'approved': return <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">{content.approved}</span>;
-            case 'rejected': return <span className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">{content.rejected}</span>;
-            default: return <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">{content.pending}</span>;
+            case 'approved': return <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">{content?.approved || 'Approved'}</span>;
+            case 'rejected': return <span className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-full">{content?.rejected || 'Rejected'}</span>;
+            default: return <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">{content?.pending || 'Pending'}</span>;
         }
     };
 
     return (
         <div className="bg-slate-50 max-h-[85vh] overflow-y-auto p-8">
-            <h1 className="text-4xl font-extrabold text-[#0D1B3A]">{content.title}</h1>
-            <p className="mt-2 text-lg text-slate-600">{content.welcome.replace('{{companyName}}', user.companyName)}</p>
-            <p className="text-slate-500">{content.subtitle}</p>
+            <h1 className="text-4xl font-extrabold text-[#0D1B3A]">{content?.title || 'Sponsor Dashboard'}</h1>
+            <p className="mt-2 text-lg text-slate-600">{(content?.welcome || 'Welcome, {{companyName}}!').replace('{{companyName}}', user.companyName || '')}</p>
+            <p className="text-slate-500">{content?.subtitle || 'Submit your products to be featured as prizes in our CarbonSpin game.'}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                 <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h2 className="text-2xl font-bold text-[#0D1B3A] mb-4">{content.applyTitle}</h2>
+                    <h2 className="text-2xl font-bold text-[#0D1B3A] mb-4">{content?.applyTitle || 'Submit a New Product'}</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <FormInput label={content.productName} type="text" value={productName} onChange={e => setProductName(e.target.value)} placeholder="e.g., Reusable Coffee Cup" />
-                        <FormInput label={content.productImage} type="text" value={productImage} onChange={e => setProductImage(e.target.value)} placeholder="https://..." />
-                        <FormInput label={content.quantity} type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} placeholder="100" />
+                        <FormInput label={content?.productName || 'Product Name'} type="text" value={productName} onChange={e => setProductName(e.target.value)} placeholder="e.g., Reusable Coffee Cup" />
+                        <FormInput label={content?.productImage || 'Product Image URL'} type="text" value={productImage} onChange={e => setProductImage(e.target.value)} placeholder="https://..." />
+                        <FormInput label={content?.quantity || 'Quantity'} type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} placeholder="100" />
                         
                         <button type="submit" className="w-full bg-[var(--color-primary)] text-white font-bold py-3 px-4 rounded-full hover:bg-[var(--color-primary-hover)] transition-colors">
-                            {content.submit}
+                            {content?.submit || 'Submit for Review'}
                         </button>
                     </form>
                 </section>
 
                 <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h2 className="text-2xl font-bold text-[#0D1B3A] mb-4">{content.yourProducts}</h2>
+                    <h2 className="text-2xl font-bold text-[#0D1B3A] mb-4">{content?.yourProducts || 'Your Submissions'}</h2>
                     {sponsorApplications.length > 0 ? (
                         <ul className="space-y-3 max-h-96 overflow-y-auto">
                             {sponsorApplications.map(app => (
@@ -91,7 +90,7 @@ const SponsorDashboard = ({ content }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-slate-500 text-center py-8">{content.noProducts}</p>
+                        <p className="text-slate-500 text-center py-8">{content?.noProducts || 'You have not submitted any products yet.'}</p>
                     )}
                 </section>
             </div>

@@ -33,19 +33,19 @@ const ProjectCard = memo(({ category, title, description, projectType, verificat
                 </Editable>
                 <div className="pt-6 border-t border-[var(--color-border)] grid grid-cols-2 gap-x-6 gap-y-4">
                     <div>
-                        <p className="font-semibold text-[var(--color-text)]">{content.projectType}</p>
+                        <p className="font-semibold text-[var(--color-text)]">{content?.projectType || 'Project Type'}</p>
                         <Editable path={`projectsSection.projects.${originalIndex}.projectType`} isEditing={isEditing} onUpdate={onUpdate}>
                             <p className="text-[var(--color-text-secondary)]">{projectType}</p>
                         </Editable>
                     </div>
                     <div>
-                        <p className="font-semibold text-[var(--color-text)]">{content.annualReduction}</p>
+                        <p className="font-semibold text-[var(--color-text)]">{content?.annualReduction || 'Annual Reduction'}</p>
                         <Editable path={`projectsSection.projects.${originalIndex}.reduction`} isEditing={isEditing} onUpdate={onUpdate}>
                             <p className="text-[var(--color-text-secondary)]">{reduction}</p>
                         </Editable>
                     </div>
                     <div>
-                        <p className="font-semibold text-[var(--color-text)]">{content.verification}</p>
+                        <p className="font-semibold text-[var(--color-text)]">{content?.verification || 'Verification'}</p>
                         <Editable path={`projectsSection.projects.${originalIndex}.verification`} isEditing={isEditing} onUpdate={onUpdate}>
                             <p className="text-[var(--color-text-secondary)]">{verification}</p>
                         </Editable>

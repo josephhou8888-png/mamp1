@@ -26,7 +26,7 @@ const AIChatAssistant: React.FC<{content: any}> = ({ content }) => {
 
     useEffect(() => {
         if (isOpen && messages.length === 0) {
-            setMessages([{ role: 'model', text: content.welcomeMessage }]);
+            setMessages([{ role: 'model', text: content?.welcomeMessage || 'Hello! How can I assist you today?' }]);
             inputRef.current?.focus();
         }
     }, [isOpen, messages, content]);
@@ -106,7 +106,7 @@ const AIChatAssistant: React.FC<{content: any}> = ({ content }) => {
                                 <RobotIcon className="w-8 h-8 text-[var(--color-primary)]" />
                                 <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-400 ring-2 ring-white"></span>
                             </div>
-                            <h3 className="font-bold text-lg text-[var(--color-text)]">{content.headerTitle}</h3>
+                            <h3 className="font-bold text-lg text-[var(--color-text)]">{content?.headerTitle || 'AI Assistant'}</h3>
                         </div>
                         <button onClick={() => setIsOpen(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text)]">
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -139,7 +139,7 @@ const AIChatAssistant: React.FC<{content: any}> = ({ content }) => {
                                 ref={inputRef}
                                 type="text"
                                 name="message"
-                                placeholder={content.inputPlaceholder}
+                                placeholder={content?.inputPlaceholder || 'Type a message...'}
                                 className="w-full px-4 py-2 bg-white border border-[var(--color-border)] rounded-full focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] text-[var(--color-text)]"
                                 disabled={isLoading}
                                 autoComplete="off"
@@ -157,14 +157,14 @@ const AIChatAssistant: React.FC<{content: any}> = ({ content }) => {
                      <div className={`absolute bottom-full right-0 mb-3 transition-all duration-300 ease-out transform ${showTooltip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
                          <div className="flex items-center gap-2 bg-slate-800 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-lg">
                              <ChatBubbleIcon className="w-5 h-5" />
-                             <span>{content.initialTooltip}</span>
+                             <span>{content?.initialTooltip || 'Have a question?'}</span>
                          </div>
                          <div className="absolute right-4 -bottom-1.5 w-3 h-3 bg-slate-800 transform rotate-45"></div>
                      </div>
                     <button
                         onClick={() => setIsOpen(true)}
                         className="chat-fab w-16 h-16 bg-[var(--color-primary)] text-white rounded-full shadow-xl flex items-center justify-center hover:bg-[var(--color-primary-hover)] transition-all transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/50"
-                        aria-label={content.fabAriaLabel}
+                        aria-label={content?.fabAriaLabel || 'Open AI Chat'}
                     >
                        <RobotIcon className={`w-14 h-14 transition-transform duration-300 ${isWaving ? 'waving' : ''}`} />
                     </button>

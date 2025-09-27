@@ -42,10 +42,7 @@ const AppContent: React.FC = () => {
         language, 
         setLanguage, 
         isLoadingContent, 
-        applications, 
         handleFullContentUpdate, 
-        handleApplicationUpdate, 
-        handleSponsorApplicationSubmit 
     } = useContent();
 
     // --- UI State ---
@@ -273,7 +270,7 @@ const AppContent: React.FC = () => {
                 <Sponsors content={displayContent.sponsors} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />
                 <About content={displayContent.about} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />
                 <div ref={calculatorRef}>
-                    <CarbonCalculator content={displayContent.carbonCalculator} geminiPrompt={displayContent.geminiPrompt} resultsModalContent={displayContent.resultsModal} onSignUpRedirect={handleSignUpClick} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />
+                    <CarbonCalculator content={displayContent.carbonCalculator} geminiPrompt={displayContent.geminiPrompt || ''} resultsModalContent={displayContent.resultsModal} onSignUpRedirect={handleSignUpClick} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />
                 </div>
                 <Steps content={displayContent.stepsSection} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />
                 <Impact content={displayContent.impact} isEditing={isEditMode} onUpdate={handleUpdateEditableContent} />

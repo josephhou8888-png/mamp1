@@ -68,31 +68,35 @@ const AdminDashboard = () => {
     
     const handleAddItem = (path, newItem) => {
         const keys = path.split('.');
-        let current = { ...editableContent };
-        let parent = null;
-        let lastKey = '';
+        // Use a variable to traverse the object, starting from the top level.
+        let currentArray = editableContent;
+        // Navigate to the target array using the path keys.
         for (const key of keys) {
-            parent = current;
-            lastKey = key;
-            current = current[key];
+            // Use optional chaining for safety in case a key doesn't exist.
+            currentArray = currentArray?.[key];
         }
-        const newArray = [...(current || []), newItem];
-        if (parent) {
-            parent[lastKey] = newArray;
-            setEditableContent({ ...editableContent, ...parent });
-        } else {
-             handleChange(path, newArray);
-        }
+        // Create the new array by spreading the existing items (or an empty array) and adding the new item.
+        const newArray = [...(Array.isArray(currentArray) ? currentArray : []), newItem];
+        // Use the existing robust `handleChange` function to update the state immutably.
+        handleChange(path, newArray);
     };
     
-    const handleRemoveItem = (path, index) => {
+    const handleRemoveItem = (path, indexToRemove) => {
         const keys = path.split('.');
-        let current = { ...editableContent };
-        let temp = current;
-        for (let i = 0; i < keys.length; i++) {
-            temp = temp[keys[i]];
+        // Use a variable to traverse the object.
+        let currentArray = editableContent;
+        // Navigate to the target array.
+        for (const key of keys) {
+            currentArray = currentArray?.[key];
         }
-        const newArray = temp.filter((_, i) => i !== index);
+        // Ensure we are working with an array before filtering.
+        if (!Array.isArray(currentArray)) {
+            console.error(`handleRemoveItem Error: Path "${path}" did not resolve to an array.`);
+            return;
+        }
+        // Create a new array by filtering out the item at the specified index.
+        const newArray = currentArray.filter((_, i) => i !== indexToRemove);
+        // Use `handleChange` to update the state.
         handleChange(path, newArray);
     };
 
@@ -118,7 +122,6 @@ const AdminDashboard = () => {
     ];
 
     const renderPanel = () => {
-        // FIX: Pass handleAddItem and handleRemoveItem to child components.
         const commonProps = { data: editableContent, onChange: handleChange, onAddItem: handleAddItem, onRemoveItem: handleRemoveItem, adminContent };
         switch (activeSection) {
             case 'settings': return <SettingsPanel {...commonProps} />;

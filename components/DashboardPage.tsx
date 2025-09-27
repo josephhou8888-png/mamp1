@@ -3,7 +3,7 @@ import { GiftIcon, ShoppingCartIcon, Co2Icon, TreeIcon } from './IconComponents'
 import CarbonSpinGame from './CarbonSpinGame';
 import { useAuth } from '../contexts/AuthContext';
 import { useContent } from '../contexts/ContentContext';
-import { Product, Reward } from '../types/firestore';
+import { Product, Reward } from '../types/data';
 
 const ImpactStat = ({ icon, value, unit, label, color }) => (
     <div className="flex items-center gap-4">

@@ -56,7 +56,7 @@ const Footer = memo(({ content, settings, onSponsorClick, isEditing, onUpdate }:
                                 </Editable>
                             </li>
                         ))}
-                         {content.forSponsors && (
+                         {content?.forSponsors && (
                             <li>
                                 <Editable path="footer.forSponsors" isEditing={isEditing} onUpdate={onUpdate}>
                                     <button onClick={onSponsorClick} className="hover:text-[var(--color-primary)] transition-colors">{content.forSponsors}</button>

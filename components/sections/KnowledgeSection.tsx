@@ -75,7 +75,7 @@ const KnowledgeSection = memo(({ content, onArticleClick, isEditing, onUpdate }:
                                 <p className="mt-4 text-[var(--color-text-secondary)]">{article.summary}</p>
                             </Editable>
                             <button onClick={() => onArticleClick(article)} className="mt-6 font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] self-start">
-                                {content.readMore} &rarr;
+                                {content?.readMore || 'Read More'} &rarr;
                             </button>
                         </div>
                     )})}

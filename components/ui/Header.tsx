@@ -85,13 +85,13 @@ const MobileNav = ({ isOpen, onClose, onLoginClick, onSignUpClick, onDashboardCl
                                 onClick={() => { onSignUpClick(); onClose(); }}
                                 className="w-full font-semibold text-sm px-6 py-3 rounded-full bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors"
                             >
-                                {content.signUp}
+                                {content?.signUp}
                             </button>
                              <button
                                 onClick={() => { onLoginClick(); onClose(); }}
                                 className="w-full font-semibold text-sm px-6 py-3 rounded-full text-[var(--color-text)] bg-slate-100 hover:bg-slate-200 transition-colors"
                             >
-                                {content.login}
+                                {content?.login}
                             </button>
                         </div>
                     )}
@@ -169,13 +169,13 @@ const Header = memo(({ onLoginClick, onSignUpClick, onCartClick, onDashboardClic
                                     onClick={onLoginClick}
                                     className="font-semibold text-sm px-6 py-2.5 rounded-full text-[var(--color-text)] hover:bg-slate-100 transition-colors"
                                 >
-                                    {content.login}
+                                    {content?.login}
                                 </button>
                                 <button
                                     onClick={onSignUpClick}
                                     className="font-semibold text-sm px-6 py-2.5 rounded-full bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] transition-colors"
                                 >
-                                    {content.signUp}
+                                    {content?.signUp}
                                 </button>
                             </div>
                         )}

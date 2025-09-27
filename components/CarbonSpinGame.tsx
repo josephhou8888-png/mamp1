@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LeafIcon, SunIcon, WindIcon, WaterDropIcon } from './IconComponents';
 import { useToast } from '../contexts/ToastContext';
-import { GamePrize } from '../types/firestore';
+import { GamePrize } from '../types/data';
 
 const Fireworks = () => {
     const particles = Array.from({ length: 100 }).map((_, i) => ({

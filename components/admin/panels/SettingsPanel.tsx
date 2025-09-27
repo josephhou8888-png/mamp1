@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TextInput, TextareaInput, ToggleInput, SocialLinkInput, Fieldset, ImageUploadInput } from '../AdminFormComponents';
+import { supabase } from '../../../services/supabaseClient';
+import { useToast } from '../../../contexts/ToastContext';
+import { SpinnerIcon } from '../../IconComponents';
 
 const SettingsPanel = ({ data, onChange, adminContent }) => {
     const settings = data.websiteSettings || { features: {}, socialLinks: {} };
     const labels = adminContent.labels;
     const actions = adminContent.actions;
+    const [isTesting, setIsTesting] = useState(false);
+    const { showToast } = useToast();
+
+    const handleTestConnection = async () => {
+        setIsTesting(true);
+        try {
+            // A simple, low-cost query to test the connection
+            const { error } = await supabase.from('website_content').select('lang').limit(1).single();
+            if (error) {
+                // Supabase client might not throw but return an error object
+                throw error;
+            }
+            showToast('Database connection successful!', 'success');
+        } catch (err: any) {
+            console.error("Database connection test failed:", err);
+            showToast(`Database connection failed: ${err.message}`, 'error');
+        } finally {
+            setIsTesting(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -40,6 +63,23 @@ const SettingsPanel = ({ data, onChange, adminContent }) => {
              <Fieldset legend="Social Media Links">
                  <SocialLinkInput socialLinks={settings.socialLinks || {}} onChange={onChange} labels={labels} />
              </Fieldset>
+
+            <Fieldset legend="Database">
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={handleTestConnection}
+                        disabled={isTesting}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-md hover:bg-slate-200 text-sm disabled:opacity-50"
+                    >
+                        {isTesting && <SpinnerIcon />}
+                        {isTesting ? 'Testing...' : 'Test Database Connection'}
+                    </button>
+                    <p className="text-xs text-slate-500">
+                        Click to verify the application can connect to the Supabase database.
+                    </p>
+                </div>
+            </Fieldset>
         </div>
     );
 };
