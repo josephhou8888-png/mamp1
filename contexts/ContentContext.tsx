@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { useToast } from './ToastContext';
 import { AllContent, SponsorApplication, Content } from '../types/data';
 import { supabase } from '../services/supabaseClient';
+import { seedData } from '../services/seedData';
 
 interface ContentContextType {
     allContent: AllContent | null;
@@ -26,26 +27,17 @@ export const useContent = () => {
     return context;
 };
 
-/**
- * A robust error formatting utility to avoid "[object Object]".
- * It intelligently inspects the error structure to provide a clear, readable message.
- * @param error The error object caught in a catch block.
- * @returns A formatted string representation of the error.
- */
 const formatSupabaseError = (error: any): string => {
     if (!error) return 'An unknown error occurred.';
-    // Handles Supabase's PostgrestError objects, which are rich with details.
     if (typeof error.message === 'string') {
         let message = error.message;
         if (error.details) message += ` | Details: ${error.details}`;
         if (error.hint) message += ` | Hint: ${error.hint}`;
         return message;
     }
-    // Handles generic JavaScript Error objects.
     if (error instanceof Error && typeof error.message === 'string') {
         return error.message;
     }
-    // Fallback for other types of errors (e.g., network errors).
     try {
         const stringified = JSON.stringify(error);
         return stringified === '{}' ? 'Received an empty error object.' : stringified;
@@ -62,32 +54,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const [language, setLanguage] = useState('en');
     const { showToast } = useToast();
 
-    const fetchAllData = useCallback(async () => {
+    const fetchAllData = useCallback(async (isRetry = false) => {
         setIsLoadingContent(true);
 
-        // FIX: Define a minimal, valid default content structure to use as a fallback.
-        // This prevents type errors and ensures the app can render without crashing if content fetching fails.
-        const defaultContent: Content = {
-            websiteSettings: {
-                title: 'Mampani',
-                metaDescription: 'An error occurred while loading content.',
-                logoUrl: '',
-                primaryColor: '#059669',
-                features: { splashEnabled: 'false', aiChatEnabled: 'false' },
-                socialLinks: { twitter: '', facebook: '', instagram: '', linkedin: '' },
-                tngApiKey: '',
-            },
-            products: [],
-            gamePrizes: [],
-            rewards: [],
-        };
-        const defaultAllContent: AllContent = {
-            en: defaultContent,
-            ms: defaultContent,
-        };
-
-        // --- Fetch Website Content ---
         try {
+            // --- Fetch Website Content ---
             const { data: contentRows, error: contentError } = await supabase
                 .from('website_content')
                 .select('lang, data');
@@ -99,20 +70,44 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     return acc;
                 }, {} as AllContent);
                 setAllContent(contentObj);
-            } else {
-                console.warn("No website content found in the database. Using empty defaults.");
-                // FIX: Use a valid default object instead of an empty one to satisfy TypeScript and avoid runtime errors.
-                setAllContent(defaultAllContent);
-            }
-        } catch (error: any) {
-            console.error("Error fetching website_content:", error);
-            showToast(`Failed to load main content: ${formatSupabaseError(error)}`, 'error');
-            // FIX: Use a valid default object instead of an empty one to satisfy TypeScript and avoid runtime errors.
-            setAllContent(defaultAllContent);
-        }
+            } else if (!isRetry) {
+                // --- DATABASE IS EMPTY: ATTEMPT TO SEED ---
+                console.log("Database content is empty. Attempting to seed with default data...");
+                showToast('First-time setup: Initializing content...', 'info');
 
-        // --- Fetch Applications & Profiles ---
-        try {
+                const { error: seedError } = await supabase
+                    .from('website_content')
+                    .insert([
+                        { lang: 'en', data: seedData.en },
+                        { lang: 'ms', data: seedData.ms }
+                    ]);
+
+                if (seedError) {
+                    if (seedError.message.includes('violates row-level security policy')) {
+                        // This is an expected failure if RLS is enabled without an insert policy for anon users.
+                        // We will fall back to local data gracefully.
+                        console.warn("Database seeding blocked by Row Level Security policy. This is expected if RLS is enabled. Falling back to local data. To persist content, please adjust your RLS policies in the Supabase dashboard to allow inserts or populate the data manually.");
+                        showToast("Using default content. (DB seeding blocked by security policy)", "info");
+                        setAllContent(seedData); // Use the local seed data as a fallback
+                    } else {
+                        // Another, unexpected database error occurred.
+                        throw new Error(`Failed to seed database: ${seedError.message}`);
+                    }
+                } else {
+                    // Seeding was successful.
+                    console.log("Seeding successful. Refetching content.");
+                    showToast('Content initialized successfully!', 'success');
+                    await fetchAllData(true); // Re-run to fetch the now-seeded data and the rest of the app data
+                    return; // Important to exit here to avoid fetching applications twice
+                }
+            } else {
+                 // It was a retry but the DB is still empty. This shouldn't happen if seeding works.
+                // Fallback to local data to prevent a broken state.
+                console.warn("Database is still empty after seeding attempt. Falling back to local data.");
+                setAllContent(seedData);
+            }
+
+            // --- Fetch Applications & Profiles (runs if seeding didn't happen or failed gracefully) ---
             const { data: applicationsData, error: applicationsError } = await supabase
                 .from('sponsor_applications')
                 .select('*');
@@ -140,9 +135,9 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 }
             }
         } catch (error: any) {
-            console.error("Error fetching applications/profiles:", error);
-            setApplications([]); // Set to empty array on failure to prevent stale data issues
-            showToast(`Failed to load sponsor applications: ${formatSupabaseError(error)}`, 'error');
+            console.error("Critical error during data fetch/seed:", error);
+            showToast(`Error initializing app data: ${formatSupabaseError(error)}`, 'error');
+            setAllContent(seedData); // Fallback to in-memory seed data on critical failure
         } finally {
             setIsLoadingContent(false);
         }
